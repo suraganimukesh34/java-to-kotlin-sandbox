@@ -1,64 +1,41 @@
-package com.example.billing;
+package com.example.billing
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal
 
-public class InvoiceRepository {
-    public interface Callback {
-        void onResult(Invoice invoice);
+class InvoiceRepository {
+    fun interface Callback {
+        fun onResult(invoice: Invoice?)
     }
 
-    private final List<Invoice> invoices = new ArrayList<>();
-    private final Map<String, Integer> countsByCustomer = new HashMap<>();
+    private val invoices = mutableListOf<Invoice>()
+    private val countsByCustomer = mutableMapOf<String, Int>()
 
-    public static InvoiceRepository withSample() {
-        InvoiceRepository repository = new InvoiceRepository();
-        repository.add(new Invoice("inv-1", "cust-1", new BigDecimal("120.00"), false));
-        repository.add(new Invoice("inv-2", "cust-1", new BigDecimal("75.50"), true));
-        return repository;
-    }
-
-    public void add(Invoice invoice) {
+    fun add(invoice: Invoice?) {
         if (invoice != null) {
-            invoices.add(invoice);
-            Integer current = countsByCustomer.get(invoice.getCustomerId());
-            countsByCustomer.put(invoice.getCustomerId(), current == null ? 1 : current + 1);
+            invoices.add(invoice)
+            val current = countsByCustomer[invoice.customerId]
+            countsByCustomer[invoice.customerId] = if (current == null) 1 else current + 1
         }
     }
 
-    public Invoice findById(String id) {
-        for (Invoice invoice : invoices) {
-            if (invoice.getId().equals(id)) {
-                return invoice;
-            }
-        }
-        return null;
+    fun findById(id: String): Invoice? = invoices.firstOrNull { it.id == id }
+
+    fun findByCustomer(customerId: String): List<Invoice> =
+        invoices.filter { it.customerId == customerId }
+
+    fun countUnpaid(): Int = invoices.count { !it.isPaid }
+
+    fun load(id: String, callback: Callback) {
+        callback.onResult(findById(id))
     }
 
-    public List<Invoice> findByCustomer(String customerId) {
-        List<Invoice> result = new ArrayList<>();
-        for (Invoice invoice : invoices) {
-            if (invoice.getCustomerId().equals(customerId)) {
-                result.add(invoice);
-            }
+    companion object {
+        @JvmStatic
+        fun withSample(): InvoiceRepository {
+            val repository = InvoiceRepository()
+            repository.add(Invoice("inv-1", "cust-1", BigDecimal("120.00"), false))
+            repository.add(Invoice("inv-2", "cust-1", BigDecimal("75.50"), true))
+            return repository
         }
-        return result;
-    }
-
-    public int countUnpaid() {
-        int count = 0;
-        for (Invoice invoice : invoices) {
-            if (!invoice.isPaid()) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    public void load(final String id, final Callback callback) {
-        callback.onResult(findById(id));
     }
 }
