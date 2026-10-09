@@ -13,9 +13,11 @@ request. A person reviews and merges it. You never merge, and you never push wit
 - Optional: `--run-tests "<command>"` (the module's test command) and `--push` (the user has already
   approved pushing and opening a draft PR if the gate passes).
 - The pipeline folder: the environment variable `MIGRATION_PIPELINE` (it holds `pipeline.py`). If it is
-  not set, stop and ask for it. Do not guess.
+  not set, ask for it; if you cannot ask (subagent or headless), stop and report that it is missing. Do
+  not guess the path.
 
-Run Python as `py -3` on Windows and `python3` elsewhere.
+Run Python as `py -3` on Windows and `python3` elsewhere. The commands below use `$MIGRATION_PIPELINE`
+(bash); in PowerShell write `$env:MIGRATION_PIPELINE`. `pipeline.py verify --help` lists the gate's options.
 
 ## Rules for the conversion
 
@@ -36,11 +38,16 @@ needs a build-file change, or one that would change the public API.
      If something does extend it, keep it `open` and do not make it a data class (list that under
      "Skill rules not applied").
    - Keep `synchronized` (`@Synchronized`) and checked exceptions (`@Throws`).
-2. **Nullability.** Treat unannotated public parameters and return values as nullable (`T?`). Make a
-   parameter non-null only if the Java marks it `@NonNull`/`@NotNull`, or its body dereferences it
-   unconditionally (so null already threw). The gate warns about every non-null parameter; that is
-   expected and accepted when you list it under "Nullability decisions". Do not make a parameter
-   nullable just to silence a warning.
+2. **Nullability: decide from evidence in the Java, not by default.**
+   - **Nullable (`T?`)** if the Java marks it `@Nullable`, checks it for null, returns or passes null for
+     it, or stores it somewhere null is meaningful. A public method that can `return null` returns `T?`.
+   - **Non-null (`T`)** if the Java marks it `@NonNull`/`@NotNull`, or dereferences it without a null
+     check, directly or later through a stored field (so null already threw).
+   - **No evidence either way:** non-null for parameters and private members, and for return values that
+     never return null.
+   - The gate warns about every unannotated parameter that is now non-null. That is expected: list each
+     one under "Nullability decisions" with its evidence. Do not make something nullable just to
+     silence a warning, and never use `!!` or `lateinit` to imitate a Java null failure.
 3. **Do not improve anything else.** No logic changes, no renames, no new dependencies, no edits to
    build files or other modules. If the module needs build changes (Kotlin plugin, view binding), say
    so in the PR; do not make them.
@@ -57,7 +64,8 @@ needs a build-file change, or one that would change the public API.
 1. **Preconditions.** The folder is inside a git repository, `git status --porcelain` is empty, and the
    path contains `.java` files. Otherwise stop and say why. The current branch must be `main`, `master`
    or `develop`; if it is not, stop and ask. Record `BASE=$(git rev-parse HEAD)`.
-2. **Branch.** `git switch -c migrate/<module-folder-name>-to-kotlin`. If that name already exists, add
+2. **Branch.** `git switch -c migrate/<module-folder-name>-to-kotlin`, where `<module-folder-name>` is the
+   last segment of the module path (`app/src/main/java/com/example/billing` gives `billing`). If that name already exists, add
    `-2`, `-3`, and so on. Never work on `main`, `master`, `develop` or an existing branch.
 3. **Order.** List the `.java` files. Convert files with the fewest imports from the same module first
    (models before repositories before view models before screens).
@@ -113,6 +121,10 @@ Why each non-null parameter flagged above is non-null (the gate lists them; you 
 ### Not covered by the skill
 <constructs handled without a skill rule, and what you chose; or "None">
 
+### API notes
+<classes left final because nothing in the repository extends them (say you searched); API that
+Kotlin adds, such as a data class's copy()/componentN() or a fun interface; or "None">
+
 ### Behavior notes
 <every behavior difference, however small; or "None known">
 
@@ -120,7 +132,8 @@ Why each non-null parameter flagged above is non-null (the gate lists them; you 
 <Kotlin plugin, view binding, and so on, that the module needs but you did not make; or "None">
 
 ### Commits
-<the git log of the branch, one line per commit>
+<`git log --oneline <BASE>..HEAD`, one line per commit. The intermediate rename commits do not
+compile; only the final state does>
 
 
 ### Reviewer checklist
