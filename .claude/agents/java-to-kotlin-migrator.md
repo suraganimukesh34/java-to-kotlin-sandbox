@@ -47,7 +47,11 @@ needs a build-file change, or one that would change the public API.
      never return null.
    - The gate warns about every unannotated parameter that is now non-null. That is expected: list each
      one under "Nullability decisions" with its evidence. Do not make something nullable just to
-     silence a warning, and never use `!!` or `lateinit` to imitate a Java null failure.
+     silence a warning, and never use `!!` or a nullable type to imitate a Java null failure.
+   - **Framework and library overrides:** copy the nullability the framework declares, for example
+     `onCreate(savedInstanceState: Bundle?)`. That is not a nullability decision.
+   - `lateinit var` is fine for fields the Java assigns in a lifecycle method such as `onCreate`. Keep
+     the fields as fields: moving them into local variables changes the structure (rule 3).
 3. **Do not improve anything else.** No logic changes, no renames, no new dependencies, no edits to
    build files or other modules. If the module needs build changes (Kotlin plugin, view binding), say
    so in the PR; do not make them.
@@ -65,27 +69,31 @@ needs a build-file change, or one that would change the public API.
    path contains `.java` files. Otherwise stop and say why. The current branch must be `main`, `master`
    or `develop`; if it is not, stop and ask. Record `BASE=$(git rev-parse HEAD)`.
 2. **Branch.** `git switch -c migrate/<module-folder-name>-to-kotlin`, where `<module-folder-name>` is the
-   last segment of the module path (`app/src/main/java/com/example/billing` gives `billing`). If that name already exists, add
-   `-2`, `-3`, and so on. Never work on `main`, `master`, `develop` or an existing branch.
+   last segment of the module path (`app/src/main/java/com/example/billing` gives `billing`). If that name
+   already exists, the bare name counts as taken: use `-2`, then `-3`, and so on. Never reuse or continue an
+   existing branch; an earlier run's branch is left as it is.
 3. **Order.** List the `.java` files. Convert files with the fewest imports from the same module first
    (models before repositories before view models before screens).
 4. **Per file, two commits, finishing a file before starting the next** (this keeps `git blame` working):
    1. `git mv X.java X.kt` and commit: `refactor: rename X to .kt`
    2. Rewrite `X.kt` as Kotlin and commit: `refactor: Migrate X to Kotlin`
-5. **Verify.** Find the git directory with `git rev-parse --absolute-git-dir`, create `migration/` inside it, and run
-   `<py> "$MIGRATION_PIPELINE/pipeline.py" verify <module-path> --base <BASE> --require-all --report "<gitdir>/migration/gate.json"`
+5. **Verify.** Find the git directory with `git rev-parse --absolute-git-dir`. Let `<outdir>` be
+   `<gitdir>/migration/<branch name with "/" replaced by "-">` (one folder per branch, so an earlier run's
+   files are never overwritten), create it, and run
+   `<py> "$MIGRATION_PIPELINE/pipeline.py" verify <module-path> --base <BASE> --require-all --report "<outdir>/gate.json"`
    (add `--test-cmd "<command>"` if tests were given). Read the whole output.
    - **FAIL:** fix every error, commit as `fix: <what>`, and re-run. At most 3 attempts. If it still
      fails, **stop: do not push and do not open a PR.** Report the remaining errors and leave the branch
      for a person.
    - **PASS or PASS-PARTIAL:** continue. Warnings and "not verified" items do not block, but they go in
      the PR exactly as the gate printed them.
-6. **PR text.** Write `<gitdir>/migration/PR_BODY.md` using the template below. It is not committed.
+6. **PR text.** Write `<outdir>/PR_BODY.md` using the template below. It is not committed.
 7. **Publish only with approval.** Show the user the gate verdict, the number of warnings, and the PR
-   title. If they did not pass `--push`, ask for a go-ahead and wait. If you cannot ask (you are running
+   title, which is `Migrate <module-folder-name> to Kotlin` unless they gave one. If they did not pass
+   `--push`, ask for a go-ahead and wait. If you cannot ask (you are running
    as a subagent or headless), do not publish: stop here and put the exact publish commands in your
    report. After approval:
-   `git push -u origin <branch>`, then `gh pr create --draft --title "..." --body-file <gitdir>/migration/PR_BODY.md`.
+   `git push -u origin <branch>`, then `gh pr create --draft --title "..." --body-file <outdir>/PR_BODY.md`.
    If there is no remote, the push fails, or `gh` is not installed, do not work around it: say what is
    missing and give the exact commands to run.
 8. **Report.** Final message: branch name, the verdict, counts of warnings and unverified checks, what is
@@ -116,7 +124,11 @@ Why each non-null parameter flagged above is non-null (the gate lists them; you 
 <one line per parameter, or "None">
 
 ### Skill rules not applied (and why)
-<each skill rule you skipped because a safety rule won; or "None">
+<only the skill rules you did NOT apply because a safety rule won, with the reason; rules you applied
+do not belong here; or "None">
+
+(A gate "equality" warning, a data class replacing hand-written equals/hashCode, is explained under
+Behavior notes: the generated hashCode values differ.)
 
 ### Not covered by the skill
 <constructs handled without a skill rule, and what you chose; or "None">
