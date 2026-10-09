@@ -1,36 +1,24 @@
-package com.example.billing;
+package com.example.billing
 
-public class InvoiceViewModel {
-    private final InvoiceRepository repository;
-    private String statusText;
-    private int loadCount;
+class InvoiceViewModel(private val repository: InvoiceRepository) {
+    var statusText: String? = null
+        private set
 
-    public InvoiceViewModel(InvoiceRepository repository) {
-        this.repository = repository;
+    var loadCount: Int = 0
+        @Synchronized get
+        private set
+
+    fun loadInvoice(id: String) {
+        loadCount++
+        repository.load(id) { invoice ->
+            statusText = if (invoice != null) describe(invoice) else "Invoice not found"
+        }
     }
 
-    public String getStatusText() {
-        return statusText;
-    }
-
-    public synchronized int getLoadCount() {
-        return loadCount;
-    }
-
-    public void loadInvoice(String id) {
-        loadCount++;
-        repository.load(id, new InvoiceRepository.Callback() {
-            @Override
-            public void onResult(Invoice invoice) {
-                statusText = invoice != null ? describe(invoice) : "Invoice not found";
-            }
-        });
-    }
-
-    private String describe(Invoice invoice) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Invoice ").append(invoice.getId());
-        builder.append(invoice.isPaid() ? " (paid)" : " (due: " + invoice.getAmount() + ")");
-        return builder.toString();
+    private fun describe(invoice: Invoice): String {
+        val builder = StringBuilder()
+        builder.append("Invoice ").append(invoice.id)
+        builder.append(if (invoice.isPaid) " (paid)" else " (due: " + invoice.amount + ")")
+        return builder.toString()
     }
 }
