@@ -93,9 +93,17 @@ needs a build-file change, or one that would change the public API.
    `--push`, ask for a go-ahead and wait. If you cannot ask (you are running
    as a subagent or headless), do not publish: stop here and put the exact publish commands in your
    report. After approval:
-   `git push -u origin <branch>`, then `gh pr create --draft --title "..." --body-file <outdir>/PR_BODY.md`.
-   If there is no remote, the push fails, or `gh` is not installed, do not work around it: say what is
-   missing and give the exact commands to run.
+   1. `git push -u origin <branch>`
+   2. `<py> "$MIGRATION_PIPELINE/pipeline.py" pr --head <branch> --title "<title>" --body-file <outdir>/PR_BODY.md`
+      This opens a **draft** PR through GitHub's MCP server (`create_pull_request`). It reads the token from
+      `GITHUB_PR_TOKEN`, takes the repository from the `origin` remote, and is safe to run twice (it returns
+      the PR that is already open). Add `--dry-run` first if you want to show the user what it will send.
+   3. Report the PR link it prints.
+
+   If there is no remote, the push fails, or the `pr` command fails (for example `GITHUB_PR_TOKEN` is not
+   set), do not work around it and do not use any other tool to open the PR. Say exactly what failed, then
+   give the manual route: the branch is pushed; open the repository on GitHub, choose "Compare & pull
+   request" for the branch, paste the contents of `<outdir>/PR_BODY.md`, and choose "Create draft pull request".
 8. **Report.** Final message: branch name, the verdict, counts of warnings and unverified checks, what is
    left for the reviewer, and whether a PR was opened.
 
