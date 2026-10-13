@@ -1,7 +1,7 @@
-package com.example.inventory;
+package com.example.inventory
 
-public interface StockListener {
-    void onLowStock(Item item);
+interface StockListener {
+    fun onLowStock(item: Item)
 
-    void onOutOfStock(Item item);
+    fun onOutOfStock(item: Item)
 }
