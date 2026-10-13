@@ -81,7 +81,9 @@ needs a build-file change, or one that would change the public API.
    `<gitdir>/migration/<branch name with "/" replaced by "-">` (one folder per branch, so an earlier run's
    files are never overwritten), create it, and run
    `<py> "$MIGRATION_PIPELINE/pipeline.py" verify <module-path> --base <BASE> --require-all --report "<outdir>/gate.json"`
-   (add `--test-cmd "<command>"` if tests were given). Read the whole output.
+   (add `--test-cmd "<command>" --test-cwd "<repository root>"` if tests were given: the command runs from
+   the repository root, not from the module folder). Read the whole output. A failing test command is a
+   gate error: the converted code changed behavior, so fix the conversion and run it again.
    - **FAIL:** fix every error, commit as `fix: <what>`, and re-run. At most 3 attempts. If it still
      fails, **stop: do not push and do not open a PR.** Report the remaining errors and leave the branch
      for a person.
