@@ -163,4 +163,9 @@ compile; only the final state does>
 - [ ] Nullability decisions acceptable
 - [ ] Behavior matches the Java (the gate does not prove this; the tests do)
 - [ ] Build files need no change, or the listed change is made
+
+### Teaching the playbook
+Merging this PR tells the playbook the patterns above worked; closing it without merging tells it they
+did not. To judge a single rule, comment `skill-feedback: reject <pattern_id> - <reason>` or
+`skill-feedback: accept <pattern_id>`, using the pattern ids from the "Skill patterns detected" line.
 ```
