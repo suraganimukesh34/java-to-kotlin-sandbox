@@ -3,14 +3,14 @@ name: java-to-kotlin-android
 description: "Converts Java Android code to Kotlin the way this codebase has already done it, using patterns mined from its past Java-to-Kotlin migration commits. Covers: constructors, null safety, properties and getters, collections, data classes, interfaces, lambdas and anonymous classes, operators, static members, android views. Use when asked to migrate, convert or port a Java class, file or module to Kotlin in an Android MVVM project."
 metadata:
   version: "1"
-  generated-at: "2026-10-08"
+  generated-at: "2026-10-13"
   source-pairs: "17"
   source-commits: "17"
 ---
 
 # Java to Kotlin migration rules (Android, MVVM)
 
-Version 1, generated 2026-10-08 from 17 converted files across 17 migration commits in this repository's history.
+Version 1, generated 2026-10-13 from 17 converted files across 17 migration commits in this repository's history.
 
 ## How to apply these rules
 
