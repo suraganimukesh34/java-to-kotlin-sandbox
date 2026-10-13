@@ -19,8 +19,8 @@ Run Python as `py -3` on Windows and `python3` elsewhere. Commands below use `$M
 
 ## How to convert
 
-Read `.claude/skills/java-to-kotlin-android/SKILL.md` and follow its rules. Rules it lists under
-"Unresolved" are not to be applied. Beyond the skill:
+Read `.claude/skills/java-to-kotlin-android/SKILL.md` and follow its rules. If it has an "Unresolved"
+section (rules reviewers rejected, waiting for a person's ruling), do not apply those rules. Beyond the skill:
 
 1. **Keep behavior and the public API.** Java callers must still compile against your Kotlin: keep names
    (a boolean `isFoo()` stays `isFoo()`), keep `static` members static (`@JvmStatic`), keep a class
