@@ -1,26 +1,18 @@
-package com.example.inventory;
+package com.example.inventory
 
-import java.util.ArrayList;
-import java.util.List;
+class StockNotifier {
+    private val _messages = mutableListOf<String>()
 
-public class StockNotifier {
-    private final List<String> messages = new ArrayList<>();
+    val messages: List<String>
+        get() = _messages
 
-    public StockListener asListener() {
-        return new StockListener() {
-            @Override
-            public void onLowStock(Item item) {
-                messages.add("low:" + item.getId());
-            }
+    fun asListener(): StockListener = object : StockListener {
+        override fun onLowStock(item: Item) {
+            _messages.add("low:${item.id}")
+        }
 
-            @Override
-            public void onOutOfStock(Item item) {
-                messages.add("out:" + item.getId());
-            }
-        };
-    }
-
-    public List<String> getMessages() {
-        return messages;
+        override fun onOutOfStock(item: Item) {
+            _messages.add("out:${item.id}")
+        }
     }
 }
