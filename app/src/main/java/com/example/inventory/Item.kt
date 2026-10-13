@@ -1,56 +1,24 @@
-package com.example.inventory;
+package com.example.inventory
 
-public class Item {
-    private final String id;
-    private final String name;
-    private final Category category;
-    private final int quantity;
+class Item(
+    val id: String,
+    val name: String,
+    val category: Category,
+    val quantity: Int,
+) {
+    fun withQuantity(quantity: Int): Item = Item(id, name, category, quantity)
 
-    public Item(String id, String name, Category category, int quantity) {
-        this.id = id;
-        this.name = name;
-        this.category = category;
-        this.quantity = quantity;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public Item withQuantity(int quantity) {
-        return new Item(id, name, category, quantity);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
         }
-        if (!(o instanceof Item)) {
-            return false;
+        if (other !is Item) {
+            return false
         }
-        return id.equals(((Item) o).id);
+        return id == other.id
     }
 
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    @Override
-    public String toString() {
-        return "Item(" + id + " x" + quantity + ")";
-    }
+    override fun toString(): String = "Item($id x$quantity)"
 }
