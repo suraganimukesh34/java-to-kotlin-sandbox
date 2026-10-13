@@ -1,12 +1,5 @@
-package com.example.inventory;
+package com.example.inventory
 
-public class ColdWarehouse extends Warehouse {
-    public ColdWarehouse(StockRepository repository) {
-        super("cold", repository);
-    }
-
-    @Override
-    public boolean canStore(Item item) {
-        return item.getCategory().isPerishable();
-    }
+class ColdWarehouse(repository: StockRepository) : Warehouse("cold", repository) {
+    override fun canStore(item: Item): Boolean = item.category.isPerishable
 }
