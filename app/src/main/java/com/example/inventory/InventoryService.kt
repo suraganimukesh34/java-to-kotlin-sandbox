@@ -1,39 +1,30 @@
-package com.example.inventory;
+package com.example.inventory
 
-import java.util.ArrayList;
-import java.util.List;
+class InventoryService(private val repository: StockRepository) {
+    private val listeners = mutableListOf<StockListener>()
 
-public class InventoryService {
-    private final StockRepository repository;
-    private final List<StockListener> listeners = new ArrayList<>();
-
-    public InventoryService(StockRepository repository) {
-        this.repository = repository;
+    fun addListener(listener: StockListener) {
+        listeners.add(listener)
     }
 
-    public void addListener(StockListener listener) {
-        listeners.add(listener);
-    }
-
-    public synchronized Item remove(String id, int amount) throws InsufficientStockException {
-        Item item = repository.findById(id);
-        if (item == null) {
-            throw new IllegalArgumentException("Unknown item: " + id);
+    @Synchronized
+    @Throws(InsufficientStockException::class)
+    fun remove(id: String, amount: Int): Item {
+        val item = repository.findById(id) ?: throw IllegalArgumentException("Unknown item: $id")
+        if (item.quantity < amount) {
+            throw InsufficientStockException("Not enough " + item.name, amount - item.quantity)
         }
-        if (item.getQuantity() < amount) {
-            throw new InsufficientStockException("Not enough " + item.getName(), amount - item.getQuantity());
-        }
-        Item updated = item.withQuantity(item.getQuantity() - amount);
-        repository.replace(updated);
-        if (updated.getQuantity() == 0) {
-            for (StockListener listener : listeners) {
-                listener.onOutOfStock(updated);
+        val updated = item.withQuantity(item.quantity - amount)
+        repository.replace(updated)
+        if (updated.quantity == 0) {
+            for (listener in listeners) {
+                listener.onOutOfStock(updated)
             }
         } else if (StockUtils.isLow(updated)) {
-            for (StockListener listener : listeners) {
-                listener.onLowStock(updated);
+            for (listener in listeners) {
+                listener.onLowStock(updated)
             }
         }
-        return updated;
+        return updated
     }
 }
