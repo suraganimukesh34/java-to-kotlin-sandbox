@@ -1,32 +1,12 @@
-package com.example.inventory;
+package com.example.inventory
 
-public enum Category {
+enum class Category(val code: String, val isPerishable: Boolean) {
     FOOD("F", true),
     TOOLS("T", false),
     CLOTHES("C", false);
 
-    private final String code;
-    private final boolean perishable;
-
-    Category(String code, boolean perishable) {
-        this.code = code;
-        this.perishable = perishable;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public boolean isPerishable() {
-        return perishable;
-    }
-
-    public static Category fromCode(String code) {
-        for (Category category : values()) {
-            if (category.code.equals(code)) {
-                return category;
-            }
-        }
-        return null;
+    companion object {
+        @JvmStatic
+        fun fromCode(code: String): Category? = values().firstOrNull { it.code == code }
     }
 }
